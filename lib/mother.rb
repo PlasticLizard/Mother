@@ -1,6 +1,7 @@
 require 'rubygems'
 require "sinatra/base"
 require "haml"
+require "mongo_mapper"
 
 #Set the root of the application for easier path specification
 APP_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../")
