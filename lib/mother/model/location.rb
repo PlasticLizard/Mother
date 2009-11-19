@@ -1,4 +1,6 @@
-class Location < MotherModel
+class Location
+  include MongoMapper::EmbeddedDocument
+  
   key :description, String, :required=>true
   key :address, String
   key :city, String
