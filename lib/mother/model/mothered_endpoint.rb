@@ -1,4 +1,5 @@
 require "json"
+require File.dirname(__FILE__) + "/endpoint_status"
 
 class MotheredEndpoint < MotherModel
     
