@@ -64,11 +64,10 @@ class MotheredEndpointTest < Test::Unit::TestCase
 
     context "when called on an endpoint with a previous status" do
       setup do
-        @new_status = EndpointStatus.create :online
+        @new_status = EndpointStatus.get_default :online
 
         @ep = MotheredEndpoint.new
         @ep.status = @new_status
-        @ep.status.expects(:save).returns(true)
         @ep.send(:ensure_status)
       end
       should "not overwrite existing status" do

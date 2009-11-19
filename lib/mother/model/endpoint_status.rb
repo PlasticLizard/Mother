@@ -1,4 +1,5 @@
-class EndpointStatus < MotherModel
+class EndpointStatus
+  include MongoMapper::EmbeddedDocument
   
   DEFAULTS = {
            :default => {:name=>"Unspecified",:description=>"The status for this endpoint has never been set."},
@@ -9,17 +10,13 @@ class EndpointStatus < MotherModel
   key :name, String, :required => true
   key :description, String
 
-  key :mothered_endpoint_id, ObjectId
-  belongs_to :mothered_endpoint
-
-  def self.create(named_status)
-    attributes = DEFAULTS[named_status.to_sym]
-    raise "#{named_status} is not a valid default status. Please use one of #{DEFAULTS.keys.join(',')}" unless attributes
+  def self.get_default(status)
+    attributes = DEFAULTS[status.to_sym]
+    raise "#{status} is not a valid default status. Please use one of #{DEFAULTS.keys.join(',')}" unless attributes
     EndpointStatus.new(attributes)
+  end  
 
-  end
-
-  def self.get_default_or_create(status_name)
+  def self.get_or_create_default (status_name)
     status_name = "default" unless status_name
     attributes = DEFAULTS[status_name.to_sym]
     attributes = {:name=>status_name,:description=>status_name} unless attributes
