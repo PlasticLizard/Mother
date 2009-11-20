@@ -1,11 +1,18 @@
 require "json"
 require File.dirname(__FILE__) + "/endpoint_status"
+require File.dirname(__FILE__) + "/endpoint_event"
 
-class MotheredEndpoint < MotherModel
-    
+class MotheredEndpoint
+  include MongoMapper::Document
+
   key :path, String, :required => true, :unique=>true, :index=>true
   key :name, String
   key :status, EndpointStatus
+
+  many :endpoint_events
+  
+
+  timestamps!
 
   def save
     ensure_status

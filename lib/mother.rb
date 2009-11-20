@@ -6,9 +6,6 @@ require "mongo_mapper"
 #Set the root of the application for easier path specification
 MOTHER_APP_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../") unless defined? MOTHER_APP_ROOT
 
-require File.join(MOTHER_APP_ROOT,"lib/mother/model/mother_model")
-require File.join(MOTHER_APP_ROOT,"lib/mother/model/letter_home")
-
 #require models
 Dir[(File.join(MOTHER_APP_ROOT,"lib/mother/model/") + "*.rb")].each do |model|
   require model
@@ -24,13 +21,15 @@ class Mother < Sinatra::Base
    set :static, true
    set :views, "#{root}/lib/mother/view"
 
-   post '/endpoint/:id/status' do
-      "id: " + params[:id].to_s
+   post '/endpoint/*/event' do
+    path = params[:splat][0]
+     ep = MotheredEndpoint.find_by_path(path)
+     not_found unless ep
+     event_json = request.body.read
+     event_data = JSON.parse(event_json)
+     event = ep.endpoint_events.build event_data
+     event.save
    end
-
-    post '/endpoint/*/status' do
-      params[:splat].to_s
-    end
 
    put '/endpoint/*/status' do
     path = params[:splat][0]

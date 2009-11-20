@@ -68,16 +68,16 @@ class MotherTest < Test::Unit::TestCase
       end
     end
 
-     context "to a non-existing endpoint," do
-        setup do
-          MotheredEndpoint.expects(:find_by_path).with(@path).returns(nil)
-          put '/endpoint/' + @path + '/status', "{x:y}"
-        end
-
-        should "return a 404 error code" do
-          assert_equal last_response.status, 404
-        end
+    context "to a non-existing endpoint," do
+      setup do
+        MotheredEndpoint.expects(:find_by_path).with(@path).returns(nil)
+        put '/endpoint/' + @path + '/status', "{x:y}"
       end
+
+      should "return a 404 error code" do
+        assert_equal last_response.status, 404
+      end
+    end
 
     context "as a simple string" do
       setup do
@@ -88,10 +88,49 @@ class MotherTest < Test::Unit::TestCase
         put '/endpoint/' + @path + '/status',"online"
       end
       should "not attempt to parse as JSON" do
-
+        assert last_response.ok?
       end
     end
 
+  end
+
+  context "Mother, when a client POSTs an event" do
+    setup do
+      @event_data = {
+              :event_type => 'system management/jobs/job started',
+              :job_name => 'shave queued monkeys',
+              :queue_count => 134
+      }
+      @event = EndpointEvent.new
+      @event.attributes = @event_data
+    end
+    context "to an existing endpoint the event" do
+
+      setup do
+        MotheredEndpoint.expects(:find_by_path).with(@path).returns(@new_ep)
+        @events = {}
+        @new_ep.expects(:endpoint_events).returns(@events)
+        @events.expects(:build).with(JSON.parse(@event_data.to_json)).returns(@event)
+        @event.expects(:save).returns(true)
+        
+        post 'endpoint/' + @path + '/event', @event_data.to_json
+      end
+
+      should "be appended to the endpoints event history" do
+        assert last_response.ok?
+      end
+
+    end
+
+    context "to a non-existent endpoint" do
+      should "create a placeholder for the endpoint using the path" do
+
+      end
+
+      should "append the event to the newly created endpoint" do
+
+      end
+    end
   end
 
   def app
