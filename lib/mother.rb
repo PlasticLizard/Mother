@@ -2,6 +2,7 @@ require 'rubygems'
 require "sinatra/base"
 require "haml"
 require "mongo_mapper"
+require "rss/maker"
 
 #Set the root of the application for easier path specification
 MOTHER_APP_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../") unless defined? MOTHER_APP_ROOT
@@ -23,10 +24,9 @@ class Mother < Sinatra::Base
 
    post '/endpoint/*/event' do
     path = params[:splat][0]
-     ep = MotheredEndpoint.find_by_path(path)
-     not_found unless ep
-     event_json = request.body.read
-     event_data = JSON.parse(event_json)
+     ep = MotheredEndpoint.find_by_path(path) || MotheredEndpoint.create(:path=>path)
+     event_data = JSON.parse(request.body.read)
+     event_data['endpoint_path'] = path
      event = ep.endpoint_events.build event_data
      event.save
    end
@@ -49,12 +49,6 @@ class Mother < Sinatra::Base
      ep.path = path
      ep.save
      path    
-   end
-
-
-
-   get '/' do
-     haml :index
    end
 
 end

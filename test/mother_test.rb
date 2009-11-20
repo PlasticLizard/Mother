@@ -99,20 +99,20 @@ class MotherTest < Test::Unit::TestCase
       @event_data = {
               :event_type => 'system management/jobs/job started',
               :job_name => 'shave queued monkeys',
-              :queue_count => 134
+              :queue_count => 134,
+              :endpoint_path => @path
       }
       @event = EndpointEvent.new
       @event.attributes = @event_data
+      @events = {}
+      @new_ep.expects(:endpoint_events).returns(@events)
+      @events.expects(:build).with(JSON.parse(@event_data.to_json)).returns(@event)
+      @event.expects(:save).returns(true)
     end
     context "to an existing endpoint the event" do
 
       setup do
         MotheredEndpoint.expects(:find_by_path).with(@path).returns(@new_ep)
-        @events = {}
-        @new_ep.expects(:endpoint_events).returns(@events)
-        @events.expects(:build).with(JSON.parse(@event_data.to_json)).returns(@event)
-        @event.expects(:save).returns(true)
-        
         post 'endpoint/' + @path + '/event', @event_data.to_json
       end
 
@@ -123,12 +123,15 @@ class MotherTest < Test::Unit::TestCase
     end
 
     context "to a non-existent endpoint" do
-      should "create a placeholder for the endpoint using the path" do
 
+      setup do
+        MotheredEndpoint.expects(:find_by_path).with(@path).returns(nil)
+        MotheredEndpoint.expects(:create).with(:path=>@path).returns(@new_ep)
+        post 'endpoint/' + @path + '/event', @event_data.to_json
       end
 
-      should "append the event to the newly created endpoint" do
-
+      should "create a placeholder for the endpoint using the path and append the event" do
+        assert last_response.ok?
       end
     end
   end
