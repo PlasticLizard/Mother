@@ -94,6 +94,29 @@ class MotherTest < Test::Unit::TestCase
 
   end
 
+  context "Mother, when a client GETs /endpoint/all/events.rss and no parameters" do
+    setup do
+      EndpointEvent.expects(:to_rss).with({}).returns("<rss/>")
+      get '/endpoint/all/events.rss'
+    end
+    should "request an RSS feed with default options" do
+      assert last_response.ok?
+      assert_equal last_response.body, "<rss/>"
+    end
+  end
+
+  context "Mother, when a client GETs /endpoint/all/events.rss and a max_results parameter" do
+    setup do
+      EndpointEvent.expects(:to_rss).with({:max_results=>1}).returns("<rss/>")
+      get '/endpoint/all/events.rss?max_results=1'
+    end
+    should "request an RSS feed using max_results in the options" do
+      assert last_response.ok?
+      assert_equal last_response.body, "<rss/>"
+    end
+  end
+
+
   context "Mother, when a client POSTs an event" do
     setup do
       @event_data = {
@@ -137,7 +160,7 @@ class MotherTest < Test::Unit::TestCase
   end
 
   def app
-    Mother
+    Mother::Application
   end
 
 end

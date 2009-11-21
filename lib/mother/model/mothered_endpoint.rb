@@ -4,7 +4,7 @@ require File.dirname(__FILE__) + "/endpoint_event"
 
 class MotheredEndpoint
   include MongoMapper::Document
-
+  
   key :path, String, :required => true, :unique=>true, :index=>true
   key :name, String
   key :status, EndpointStatus
