@@ -15,8 +15,8 @@ module Mother
       feed = RSS::Maker.make(options[:version]) do |rss|
 
         rss.channel.title = val(self, :rss_title, :title) || self.name.titleize
-        rss.channel.link = val(self, :rss_link, :link, :url, :uri) || ""
-        rss.channel.description = val(self, :rss_description, :description) || ""
+        rss.channel.link = options[:feed_link] || val(self, :rss_link, :link, :url, :uri) || "#nolink"
+        rss.channel.description = val(self, :rss_description, :description) || "List of recent #{self.name.titleize.pluralize}"
         rss.items.do_sort = options[:sort] if options[:sort]
 
         order_string = val(self,:rss_sort,:rss_order,:sort,:order_by)
@@ -27,7 +27,8 @@ module Mother
         self.find(:all,:order=>order_string, :limit=>options[:max_results]).each do |document|
           item = rss.items.new_item
           item.title = val(document, :rss_title,:title,:name)
-          item.link = val(document, :rss_link, :link, :url, :uri, :path)
+          item.link = options[:item_link_template].call(document) if options[:item_link_template]
+          item.link ||= val(document, :rss_link, :link, :url, :uri, :path) || ""
           rss_date = val(document, :rss_date, :updated_at)
           item.date = (Time.parse(rss_date).localtime if rss_date) || Time.now
           item.description = val(document, :rss_description, :description, :summary)
@@ -35,7 +36,8 @@ module Mother
 
       end
 
-      feed.to_s
+
+    feed.to_xml
 
     end
 
