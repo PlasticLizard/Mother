@@ -4,6 +4,7 @@ require 'rubygems'
 require "sinatra/base"
 require "haml"
 require "mongo_mapper"
+require "json"
 
 #Should load this from config
 MongoMapper.database = "mother"
@@ -20,6 +21,7 @@ module Mother
   class Application < Sinatra::Base
 
     #Sinatra Configuration
+    disable :reload
     enable :raise_errors
     set :root, MOTHER_APP_ROOT
     set :public, "#{root}/public"
