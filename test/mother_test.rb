@@ -96,7 +96,10 @@ class MotherTest < Test::Unit::TestCase
 
   context "Mother, when a client GETs /endpoint/all/events.rss and no parameters" do
     setup do
-      EndpointEvent.expects(:to_rss).with({}).returns("<rss/>")
+      EndpointEvent.expects(:to_rss).with(
+              {:feed_link => 'http://example.org/endpoint/all/events.rss',
+               :item_link_template => "http://example.org/endpoint/<%=document.endpoint_path%>/event/<%=document.id%>"
+              }).returns("<rss/>")
       get '/endpoint/all/events.rss'
     end
     should "request an RSS feed with default options" do
@@ -107,7 +110,10 @@ class MotherTest < Test::Unit::TestCase
 
   context "Mother, when a client GETs /endpoint/all/events.rss and a max_results parameter" do
     setup do
-      EndpointEvent.expects(:to_rss).with({:max_results=>1}).returns("<rss/>")
+      EndpointEvent.expects(:to_rss).with(
+              {:item_link_template => "http://example.org/endpoint/<%=document.endpoint_path%>/event/<%=document.id%>",
+               :max_results => 1,
+               :feed_link => 'http://example.org/endpoint/all/events.rss?max_results=1'}).returns("<rss/>")
       get '/endpoint/all/events.rss?max_results=1'
     end
     should "request an RSS feed using max_results in the options" do

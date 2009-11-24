@@ -1,5 +1,6 @@
 require "rss/maker"
 require "active_support"
+require "erb"
 
 module Mother
   module ModelRSS
@@ -9,48 +10,40 @@ module Mother
               {
                       :max_results=>25,
                       :version=>"2.0",
-                      :sort=>true
+                      :sort=>true,
+                      :item_link_template=>"#nolink"
               }.merge(options)
 
       feed = RSS::Maker.make(options[:version]) do |rss|
 
-        rss.channel.title = val(self, :rss_title, :title) || self.name.titleize
-        rss.channel.link = options[:feed_link] || val(self, :rss_link, :link, :url, :uri) || "#nolink"
-        rss.channel.description = val(self, :rss_description, :description) || "List of recent #{self.name.titleize.pluralize}"
+        rss.channel.title = self.name.titleize
+        rss.channel.link = options[:feed_link] || "#nolink"
+        rss.channel.description = "List of recent #{self.name.titleize.pluralize}"
         rss.items.do_sort = options[:sort] if options[:sort]
 
-        order_string = val(self,:rss_sort,:rss_order,:sort,:order_by)
-        order_string ||= "updated_at desc" if self.respond_to? :updated_at
-        order_string ||= "$natural -1"
+        order_string =  "$natural -1" ||
+         ( "updated_at desc" if self.respond_to? :updated_at)
 
-
-        self.find(:all,:order=>order_string, :limit=>options[:max_results]).each do |document|
-          item = rss.items.new_item
-          item.title = val(document, :rss_title,:title,:name)
-          item.link = options[:item_link_template].call(document) if options[:item_link_template]
-          item.link ||= val(document, :rss_link, :link, :url, :uri, :path) || ""
-          rss_date = val(document, :rss_date, :updated_at)
-          item.date = (Time.parse(rss_date).localtime if rss_date) || Time.now
-          item.description = val(document, :rss_description, :description, :summary)
+        self.find(:all,:order=>order_string, :limit=>options[:max_results]).each do |model|
+          item_from_model(rss,model,options)
         end
 
       end
 
-
-    feed.to_xml
-
+      feed.to_xml
     end
 
     private
 
-    def val(target,*candidates)
-      candidates.each do |candidate|
-        if (target.respond_to? candidate)
-          return target.send(candidate).to_s
-        end
-      end
-      nil
+    def item_from_model(rss,model,options)
+      item = rss.items.new_item
+          item.title = model.name
+          item.link = ERB.new(options[:item_link_template]).result(binding)
+          item.date = (Time.parse(model.updated_at).localtime if model.updated_at) || Time.now
+          item.description = model.description if model.respond_to? :description
     end
+
+
   end
 end
      

@@ -30,7 +30,7 @@ module Mother
     set :views, "#{root}/lib/mother/view"
 
     helpers do
-      def absolute_uri(env,path)
+      def absolute_uri(path)
         env["rack.url_scheme"] + "://" + File.join(env["HTTP_HOST"] || env["SERVER_NAME"],path)
       end
     end
@@ -39,7 +39,7 @@ module Mother
       options = {}
       options[:max_results] = Integer(params[:max_results]) if params[:max_results]
       options[:feed_link] = request.url
-      options[:item_link_template] =  lambda { |d| absolute_uri(env,'endpoint/%s/event/%s' % [d.endpoint_path,d.id])}
+      options[:item_link_template] = absolute_uri "endpoint/<%=document.endpoint_path%>/event/<%=document.id%>"              
       EndpointEvent.to_rss options
     end
 
