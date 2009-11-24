@@ -39,7 +39,7 @@ module Mother
       options = {}
       options[:max_results] = Integer(params[:max_results]) if params[:max_results]
       options[:feed_link] = request.url
-      options[:item_link_template] = absolute_uri "endpoint/<%=document.endpoint_path%>/event/<%=document.id%>"              
+      options[:item_link_template] = absolute_uri "endpoint/<%=model.endpoint_path%>/event/<%=model.id%>"              
       EndpointEvent.to_rss options
     end
 

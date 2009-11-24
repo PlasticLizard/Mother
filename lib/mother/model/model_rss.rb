@@ -39,7 +39,7 @@ module Mother
       item = rss.items.new_item
           item.title = model.name
           item.link = ERB.new(options[:item_link_template]).result(binding)
-          item.date = (Time.parse(model.updated_at).localtime if model.updated_at) || Time.now
+          item.date = (Time.parse(model.updated_at.to_s).localtime if model.updated_at) || Time.now
           item.description = model.description if model.respond_to? :description
     end
 
