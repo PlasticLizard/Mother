@@ -9,7 +9,7 @@ class MotheredEndpoint
   key :name, String
   key :status, EndpointStatus
 
-  many :endpoint_events
+  many :endpoint_events, :polymorphic=>true
   
 
   timestamps!

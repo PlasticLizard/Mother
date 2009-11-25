@@ -98,7 +98,7 @@ class MotherTest < Test::Unit::TestCase
     setup do
       EndpointEvent.expects(:to_rss).with(
               {:feed_link => 'http://example.org/endpoint/all/events.rss',
-               :item_link_template => "http://example.org/endpoint/<%=document.endpoint_path%>/event/<%=document.id%>"
+               :item_link_template => "http://example.org/endpoint/<%=model.endpoint_path%>/event/<%=model.id%>"
               }).returns("<rss/>")
       get '/endpoint/all/events.rss'
     end
@@ -111,7 +111,7 @@ class MotherTest < Test::Unit::TestCase
   context "Mother, when a client GETs /endpoint/all/events.rss and a max_results parameter" do
     setup do
       EndpointEvent.expects(:to_rss).with(
-              {:item_link_template => "http://example.org/endpoint/<%=document.endpoint_path%>/event/<%=document.id%>",
+              {:item_link_template => "http://example.org/endpoint/<%=model.endpoint_path%>/event/<%=model.id%>",
                :max_results => 1,
                :feed_link => 'http://example.org/endpoint/all/events.rss?max_results=1'}).returns("<rss/>")
       get '/endpoint/all/events.rss?max_results=1'
