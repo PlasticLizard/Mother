@@ -33,7 +33,7 @@ module Mother
       def absolute_uri(path)
         env["rack.url_scheme"] + "://" + File.join(env["HTTP_HOST"] || env["SERVER_NAME"],path)
       end
-    end
+    end   
 
     get '/endpoint/all/events.rss' do
       options = {}
@@ -41,6 +41,31 @@ module Mother
       options[:feed_link] = request.url
       options[:item_link_template] = absolute_uri "endpoint/<%=model.endpoint_path%>/event/<%=model.id%>"              
       EndpointEvent.to_rss options
+    end
+
+    put '/endpoint/*/event/job' do
+      path = params[:splat][0]
+      ep = MotheredEndpoint.find_by_path(path) || MotheredEndpoint.create(:path=>path)
+      event_data = JSON.parse(request.body.read)
+      event_data['endpoint_path'] = path
+      job_start = JobStartedEvent.new event_data
+      job = ep.create_job(job_start)
+      job.id.to_s
+    end
+
+    post '/endpoint/*/event/job/:job_id/complete' do
+      path = params[:splat][0]
+      ep = MotheredEndpoint.find_by_path(path) || MotheredEndpoint.create(:path=>path)
+      event_data = JSON.parse(request.body.read)
+      event_data['endpoint_path'] = path
+      job = JobStartedEvent.new event_data
+      job.save
+      ep.endpoint_events << job
+      job.id.to_s
+    end
+
+    post '/endpoint/*/event/job/:job_id/failed' do
+      
     end
 
     post '/endpoint/*/event' do

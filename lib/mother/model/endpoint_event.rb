@@ -3,9 +3,11 @@ class EndpointEvent
   extend Mother::ModelRSS
   
   key :mothered_endpoint_id, ObjectId, :index=>true
-  key :endpoint_path, String, :index=>true
+  belongs_to :mothered_endpoint
+
+  key :endpoint_path, String, :required=>true,:index=>true
   key :name, String
   key :_type, String
-
+  
   timestamps!      
 end

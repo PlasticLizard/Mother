@@ -2,13 +2,17 @@ require File.dirname(__FILE__) + "/endpoint_event"
 require File.dirname(__FILE__) + "/endpoint_error"
 
 class JobEvent < EndpointEvent
-  key :job, String, :required=>true
+  key :job_id, ObjectId, :required=>true, :index=>true
+  belongs_to :job
 end
 
-class JobStartedEvent < JobEvent; end
+class JobStartedEvent < JobEvent
+  key :start_time, Time
+end
 
 class JobEndedEvent < JobEvent
   key :duration_in_seconds, Float
+  key :end_time, Time
 end
 
 class JobCompletedEvent < JobEndedEvent
