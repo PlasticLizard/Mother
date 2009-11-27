@@ -47,7 +47,6 @@ module Mother
       path = params[:splat][0]
       ep = MotheredEndpoint.find_by_path(path) || MotheredEndpoint.create(:path=>path)
       event_data = JSON.parse(request.body.read)
-      event_data['endpoint_path'] = path
       job_start = JobStartedEvent.new event_data
       job = ep.create_job(job_start)
       job.id.to_s
@@ -55,17 +54,21 @@ module Mother
 
     post '/endpoint/*/event/job/:job_id/complete' do
       path = params[:splat][0]
-      ep = MotheredEndpoint.find_by_path(path) || MotheredEndpoint.create(:path=>path)
+      job = Job.find(params[:job_id])
+      not_found unless job
       event_data = JSON.parse(request.body.read)
-      event_data['endpoint_path'] = path
-      job = JobStartedEvent.new event_data
-      job.save
-      ep.endpoint_events << job
-      job.id.to_s
+      event = JobCompletedEvent.new event_data
+      job.complete(event)
+      true
     end
 
     post '/endpoint/*/event/job/:job_id/failed' do
-      
+      path = params[:splat][0]
+      job = Job.find(params[:job_id])
+      not_found unless job
+      event_data = JSON.parse(request.body.read)
+      event = JobFaileddEvent.new event_data
+      job.fail(event)
     end
 
     post '/endpoint/*/event' do
