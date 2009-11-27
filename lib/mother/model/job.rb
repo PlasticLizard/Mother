@@ -23,6 +23,14 @@ class Job
   #should be one of: idle, pending, completed, failed
   key :status, Symbol, :required=>true, :index=>true
 
-  timestamps!  
+  timestamps!
+
+  def complete(job_complete_event)
+    raise "not implemented"
+  end
+
+  def fail(job_failed_event)
+    raise "not implemented"
+  end
 
 end

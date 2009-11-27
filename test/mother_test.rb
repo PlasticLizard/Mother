@@ -165,6 +165,112 @@ class MotherTest < Test::Unit::TestCase
     end
   end
 
+  context "Mother, when a client POSTs a JobStartEvent" do
+    setup do
+      @job_start_data = {:name=>"A Job"}
+      @ep = MotheredEndpoint.new
+      @js_event = JobStartedEvent.new :name=>"A Job"
+      @job = Job.new
+      @job.expects(:id).returns("1234")
+      JobStartedEvent.expects(:new).with({"name"=>"A Job"}).returns(@js_event)
+      @ep.expects(:create_job).with(@js_event).returns(@job)
+    end
+    context "to an existing endpoint" do
+      setup do
+        MotheredEndpoint.expects(:find_by_path).with("path").returns(@ep)
+        post 'endpoint/path/job',@job_start_data.to_json
+      end
+      should "load the endpoint, ask it to create a job, and return the job id" do
+        assert last_response.ok?
+        assert_equal last_response.body, "1234"
+      end
+    end
+    context "to a non-existent endpoint" do
+      setup do
+        MotheredEndpoint.expects(:find_by_path).with("path").returns(nil)
+        MotheredEndpoint.expects(:create).with({:path=>"path"}).returns(@ep)
+        post 'endpoint/path/job',@job_start_data.to_json
+      end
+      should "create an endpoint before creating the job" do
+        assert last_response.ok?
+        assert_equal last_response.body, "1234"
+      end
+    end
+
+  end
+
+  context "Mother, when a client POSTs a JobCompleted event" do
+    setup do
+      @id = Mongo::ObjectID.new
+      @job_complete_data = {:name=>"A Job",:job_id=>@id.to_s}
+      @ep = MotheredEndpoint.new
+      @jc_event = JobCompletedEvent.new :name=>"A Job",:job_id=>@id.to_s
+      @job = Job.new
+      JobCompletedEvent.expects(:new).with("name"=>"A Job","job_id"=>@id.to_s).returns(@jc_event)
+      @job.expects(:complete).with(@jc_event)
+    end
+    context "to a Job that already exists" do
+      setup do
+        Job.expects(:find).with(@id.to_s).returns(@job)
+        post "/endpoint/path/job/#{@id.to_s}/complete",@job_complete_data.to_json
+      end
+      should "ask the job to complete, given the event as an argument" do
+        assert last_response.ok?
+      end
+    end
+    context "to a Job that doesn't exist" do
+      setup do
+        @js_event = JobStartedEvent.new :name=>"A Job"
+        JobStartedEvent.expects(:new).returns(@js_event)
+        @ep = MotheredEndpoint.new
+        MotheredEndpoint.expects(:find_by_path).with("path").returns(@ep)
+        @ep.expects(:create_job).with(@js_event).returns(@job)
+        post "/endpoint/path/job/complete",@job_complete_data.to_json
+      end
+      should "load the endpoint and have it create the job and ask it to complete" do
+        assert last_response.ok?
+      end
+    end
+  end
+
+  #This isn't very dry at all - should refactor JobComplete and JobFailed
+  #into some common core functionality and test that once
+  context "Mother, when a client POSTs a JobFailed event" do
+    setup do
+      @id = Mongo::ObjectID.new
+      @job_failed_data = {:name=>"A Job",:job_id=>@id.to_s}
+      @ep = MotheredEndpoint.new
+      @jf_event = JobFailedEvent.new :name=>"A Job",:job_id=>@id.to_s
+      @job = Job.new
+      JobFailedEvent.expects(:new).with("name"=>"A Job","job_id"=>@id.to_s).returns(@jf_event)
+      @job.expects(:fail).with(@jf_event)
+    end
+    context "to a Job that already exists" do
+      setup do
+        Job.expects(:find).with(@id.to_s).returns(@job)
+        post "/endpoint/path/job/#{@id.to_s}/failed",@job_failed_data.to_json
+      end
+      should "ask the job to complete, given the event as an argument" do
+        assert last_response.ok?
+      end
+    end
+    context "to a Job that doesn't exist" do
+      setup do
+        @js_event = JobStartedEvent.new :name=>"A Job"
+        JobStartedEvent.expects(:new).returns(@js_event)
+        @ep = MotheredEndpoint.new
+        MotheredEndpoint.expects(:find_by_path).with("path").returns(@ep)
+        @ep.expects(:create_job).with(@js_event).returns(@job)
+        post "/endpoint/path/job/failed",@job_failed_data.to_json
+      end
+      should "load the endpoint and have it create the job and ask it to fail" do
+        assert last_response.ok?
+      end
+    end
+  end
+
+
+
   def app
     Mother::Application
   end
