@@ -11,7 +11,7 @@ class JobStartedEvent < JobEvent
 end
 
 class JobEndedEvent < JobEvent
-  key :duration_in_seconds, Float
+  key :duration, Float
   key :end_time, Time
 end
 

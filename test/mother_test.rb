@@ -1,5 +1,4 @@
 require "test_helper"
-require "mocha"
 
 class MotherTest < Test::Unit::TestCase
   include Rack::Test::Methods

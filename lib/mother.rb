@@ -59,6 +59,7 @@ module Mother
       not_found unless job
       event = JobCompletedEvent.new event_data
       job.complete(event)
+      job.save
     end
 
     post '/endpoint/*/job/complete' do
@@ -69,6 +70,7 @@ module Mother
       job = ep.create_job js
       event = JobCompletedEvent.new event_data
       job.complete(event)
+      job.save
     end
 
     post '/endpoint/*/job/:job_id/failed' do
@@ -78,6 +80,7 @@ module Mother
       not_found unless job
       event = JobFailedEvent.new event_data
       job.fail(event)
+      job.save
     end
 
     post '/endpoint/*/job/failed' do
@@ -88,6 +91,7 @@ module Mother
       job = ep.create_job js
       event = JobFailedEvent.new event_data
       job.fail(event)
+      job.save
     end
 
     post '/endpoint/*/event' do

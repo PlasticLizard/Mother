@@ -17,7 +17,7 @@ class Job
   key :end_time, Time
   key :duration, Float
 
-  key :endpoint_error_id, EndpointError
+  key :endpoint_error_id, ObjectId
   belongs_to :endpoint_error
 
   #should be one of: idle, pending, completed, failed
@@ -26,11 +26,17 @@ class Job
   timestamps!
 
   def complete(job_complete_event)
-    raise "not implemented"
+    self.summary = job_complete_event.summary if job_complete_event.summary
+    self.end_time = job_complete_event.end_time || Time.now
+    self.duration = job_complete_event.duration || (self.end_time - self.start_time)/60.0
+    self.status = :completed
   end
 
   def fail(job_failed_event)
-    raise "not implemented"
+    self.endpoint_error_id = job_failed_event.endpoint_error_id if job_failed_event.endpoint_error_id
+    self.end_time = job_failed_event.end_time || Time.now
+    self.duration = job_failed_event.duration || (self.end_time - self.start_time)/60.0
+    self.status = :failed
   end
 
 end
