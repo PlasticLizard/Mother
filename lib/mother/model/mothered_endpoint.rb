@@ -12,9 +12,10 @@ class MotheredEndpoint
   many :endpoint_events, :polymorphic=>true
 
   many :jobs do
-    def pending
-      all(:status => :pending)  
+    def by_status(status)
+      all(:status => status)  
     end
+
   end
 
   timestamps!
