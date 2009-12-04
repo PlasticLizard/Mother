@@ -21,7 +21,7 @@ class Job
   belongs_to :endpoint_error
 
   #should be one of: idle, pending, completed, failed
-  key :status, Symbol, :required=>true, :index=>true
+  key :status, Symbol, :required=>true, :index=>true, :default=>:idle
 
   timestamps!
 

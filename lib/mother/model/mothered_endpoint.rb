@@ -4,19 +4,16 @@ require File.dirname(__FILE__) + "/endpoint_event"
 
 class MotheredEndpoint
   include MongoMapper::Document
-  
+
   key :path, String, :required => true, :unique=>true, :index=>true
   key :name, String
   key :status, EndpointStatus
 
   many :endpoint_events, :polymorphic=>true
 
-  many :jobs do
-    def by_status(status)
-      all(:status => status)  
-    end
+  many :jobs
 
-  end
+  many :expectations, :polymorphic=>true
 
   timestamps!
 
@@ -27,10 +24,10 @@ class MotheredEndpoint
     job.start_time = job_start.start_time || Time.now
     job.status = :pending
     self.jobs << job
-    job_start.job_id = job.id    
+    job_start.job_id = job.id
     self.endpoint_events << job_start
     job
-  end
+  end 
 
   def save
     ensure_status
@@ -52,6 +49,6 @@ class MotheredEndpoint
     new_stat = self.status || EndpointStatus.get_default(:default)
     new_stat.save if (new_stat.new?)
     self.status = new_stat
-  end 
+  end
 
 end
