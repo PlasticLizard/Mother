@@ -18,16 +18,19 @@ class MotheredEndpoint
   timestamps!
 
   def create_job(job_start)
-    job_start.endpoint_path = self.path
     job = Job.new :endpoint_path=>self.path
     job.name = job_start.name
     job.start_time = job_start.start_time || Time.now
     job.status = :pending
     self.jobs << job
-    job_start.job_id = job.id
-    self.endpoint_events << job_start
+    job_start.job_id = job.id    
     job
-  end 
+  end
+
+  def add_event(event)
+    event.endpoint_path = self.path
+    self.endpoint_events << event
+  end
 
   def save
     ensure_status

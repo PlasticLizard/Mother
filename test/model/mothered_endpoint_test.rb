@@ -7,7 +7,6 @@ class MotheredEndpointTest < Test::Unit::TestCase
       @jobs, @events = [], []
       @ep = MotheredEndpoint.new :path=>"A Path"
       @ep.expects(:jobs).returns(@jobs)
-      @ep.expects(:endpoint_events).returns(@events)
       @job_start = JobStartedEvent.new :name=>"a new job"
       @job = Job.new :endpoint_path=>"A Path"
 
@@ -15,7 +14,6 @@ class MotheredEndpointTest < Test::Unit::TestCase
 
     context "when called with a start event" do
       setup  do
-         @job_start.expects(:endpoint_path=).with("A Path")
          Job.expects(:new).with({:endpoint_path=>"A Path"}).returns(@job)
          @job.expects(:name=).with(@job_start.name)
          Time.expects(:now).returns(Time.parse("12/1/2009")).at_least(1)
@@ -25,9 +23,8 @@ class MotheredEndpointTest < Test::Unit::TestCase
          @job_start.expects(:job_id=).with("1234")
          @result = @ep.create_job @job_start
       end
-      should "create and configure a job, and append the event and the new job to internal collections" do
+      should "create and configure a job, and append the new job to internal collections" do
          assert_equal @job, @jobs[0]
-         assert_equal @job_start, @events[0]
          assert_equal @job,@result
       end
     end

@@ -24,7 +24,7 @@ class Expectation
 
   def matches (context)
     if self.expectation_expression
-      return context.instance_eval self.expectation_expression
+      return context.instance_eval(self.expectation_expression)
     end
     true
   end

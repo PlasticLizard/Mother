@@ -33,6 +33,13 @@ module Mother
       def absolute_uri(path)
         env["rack.url_scheme"] + "://" + File.join(env["HTTP_HOST"] || env["SERVER_NAME"],path)
       end
+
+      def get_endpoint_and_event(event_class)
+        path = params[:splat][0]
+        ep = MotheredEndpoint.find_by_path(path) || MotheredEndpoint.create(:path=>path)
+        evt_data = JSON.parse(request.body.read)
+        [ep,event_class.new(evt_data)]
+      end
     end
 
     get '/endpoint/all/events.rss' do
@@ -44,63 +51,52 @@ module Mother
     end
 
     post '/endpoint/*/job' do
-      path = params[:splat][0]
-      ep = MotheredEndpoint.find_by_path(path) || MotheredEndpoint.create(:path=>path)
-      event_data = JSON.parse(request.body.read)
-      job_start = JobStartedEvent.new event_data
-      job = ep.create_job(job_start)
+      ep, event = get_endpoint_and_event JobStartedEvent
+      job = ep.create_job(event)
+      ep.add_event(event)
       job.id.to_s
     end
 
     post '/endpoint/*/job/:job_id/complete' do
-      path = params[:splat][0]
-      event_data = JSON.parse(request.body.read)
+      ep, event = get_endpoint_and_event JobCompletedEvent
       job = Job.find(params[:job_id])
-      not_found unless job
-      event = JobCompletedEvent.new event_data
+      not_found unless job      
       job.complete(event)
       job.save
+      ep.add_event(event)
     end
 
     post '/endpoint/*/job/complete' do
-      path = params[:splat][0]
-      event_data = JSON.parse(request.body.read)
-      ep = MotheredEndpoint.find_by_path(path) || MotheredEndpoint.create(:path=>path)
-      js = JobStartedEvent.new :name=>event_data["name"]
+      ep,event = get_endpoint_and_event JobCompletedEvent
+      js = JobStartedEvent.new :name=>event.name
       job = ep.create_job js
-      event = JobCompletedEvent.new event_data
       job.complete(event)
       job.save
+      ep.add_event(event)
     end
 
     post '/endpoint/*/job/:job_id/failed' do
-      path = params[:splat][0]
-      event_data = JSON.parse(request.body.read)
+      ep,event = get_endpoint_and_event JobFailedEvent
       job = Job.find(params[:job_id])
       not_found unless job
-      event = JobFailedEvent.new event_data
       job.fail(event)
       job.save
+      ep.add_event(event)
     end
 
     post '/endpoint/*/job/failed' do
-      path = params[:splat][0]
-      event_data = JSON.parse(request.body.read)
-      ep =MotheredEndpoint.find_by_path(path) || MotheredEndpoint.create(:path=>path)
-      js = JobStartedEvent.new :name=>event_data["name"]
+      ep,event = get_endpoint_and_event JobFailedEvent
+      js = JobStartedEvent.new :name=>event.name
       job = ep.create_job js
-      event = JobFailedEvent.new event_data
       job.fail(event)
       job.save
+      ep.add_event(event)
     end
 
     post '/endpoint/*/event' do
-      path = params[:splat][0]
-      ep = MotheredEndpoint.find_by_path(path) || MotheredEndpoint.create(:path=>path)
-      event_data = JSON.parse(request.body.read)
-      event_data['endpoint_path'] = path
-      event = ep.endpoint_events.build event_data
-      event.save
+      ep,event = get_endpoint_and_event EndpointEvent
+      ep.add_event event
+      ep.id.to_s
     end
 
     put '/endpoint/*/status' do

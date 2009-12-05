@@ -132,10 +132,9 @@ class MotherTest < Test::Unit::TestCase
       }
       @event = EndpointEvent.new
       @event.attributes = @event_data
-      @events = {}
+      EndpointEvent.expects(:new).returns(@event)
+      @events = []
       @new_ep.expects(:endpoint_events).returns(@events)
-      @events.expects(:build).with(JSON.parse(@event_data.to_json)).returns(@event)
-      @event.expects(:save).returns(true)
     end
     context "to an existing endpoint the event" do
 
@@ -146,6 +145,7 @@ class MotherTest < Test::Unit::TestCase
 
       should "be appended to the endpoints event history" do
         assert last_response.ok?
+        assert_same @events[0], @event
       end
 
     end
@@ -173,6 +173,7 @@ class MotherTest < Test::Unit::TestCase
       @job.expects(:id).returns("1234")
       JobStartedEvent.expects(:new).with({"name"=>"A Job"}).returns(@js_event)
       @ep.expects(:create_job).with(@js_event).returns(@job)
+      @ep.expects(:add_event).with(@js_event)
     end
     context "to an existing endpoint" do
       setup do
@@ -181,7 +182,7 @@ class MotherTest < Test::Unit::TestCase
       end
       should "load the endpoint, ask it to create a job, and return the job id" do
         assert last_response.ok?
-        assert_equal last_response.body, "1234"
+        assert_equal "1234",last_response.body
       end
     end
     context "to a non-existent endpoint" do
@@ -192,7 +193,7 @@ class MotherTest < Test::Unit::TestCase
       end
       should "create an endpoint before creating the job" do
         assert last_response.ok?
-        assert_equal last_response.body, "1234"
+        assert_equal "1234",last_response.body 
       end
     end
 
@@ -203,10 +204,12 @@ class MotherTest < Test::Unit::TestCase
       @id = Mongo::ObjectID.new
       @job_complete_data = {:name=>"A Job",:job_id=>@id.to_s}
       @ep = MotheredEndpoint.new
+      MotheredEndpoint.expects(:find_by_path).with("path").returns(@ep)
       @jc_event = JobCompletedEvent.new :name=>"A Job",:job_id=>@id.to_s
       @job = Job.new
       JobCompletedEvent.expects(:new).with("name"=>"A Job","job_id"=>@id.to_s).returns(@jc_event)
       @job.expects(:complete).with(@jc_event)
+      @ep.expects(:add_event).with(@jc_event)
     end
     context "to a Job that already exists" do
       setup do
@@ -220,9 +223,7 @@ class MotherTest < Test::Unit::TestCase
     context "to a Job that doesn't exist" do
       setup do
         @js_event = JobStartedEvent.new :name=>"A Job"
-        JobStartedEvent.expects(:new).returns(@js_event)
-        @ep = MotheredEndpoint.new
-        MotheredEndpoint.expects(:find_by_path).with("path").returns(@ep)
+        JobStartedEvent.expects(:new).returns(@js_event)       
         @ep.expects(:create_job).with(@js_event).returns(@job)
         post "/endpoint/path/job/complete",@job_complete_data.to_json
       end
@@ -239,10 +240,12 @@ class MotherTest < Test::Unit::TestCase
       @id = Mongo::ObjectID.new
       @job_failed_data = {:name=>"A Job",:job_id=>@id.to_s}
       @ep = MotheredEndpoint.new
+      MotheredEndpoint.expects(:find_by_path).returns(@ep)
       @jf_event = JobFailedEvent.new :name=>"A Job",:job_id=>@id.to_s
       @job = Job.new
       JobFailedEvent.expects(:new).with("name"=>"A Job","job_id"=>@id.to_s).returns(@jf_event)
       @job.expects(:fail).with(@jf_event)
+      @ep.expects(:add_event).with(@jf_event)
     end
     context "to a Job that already exists" do
       setup do
@@ -256,9 +259,7 @@ class MotherTest < Test::Unit::TestCase
     context "to a Job that doesn't exist" do
       setup do
         @js_event = JobStartedEvent.new :name=>"A Job"
-        JobStartedEvent.expects(:new).returns(@js_event)
-        @ep = MotheredEndpoint.new
-        MotheredEndpoint.expects(:find_by_path).with("path").returns(@ep)
+        JobStartedEvent.expects(:new).returns(@js_event)       
         @ep.expects(:create_job).with(@js_event).returns(@job)
         post "/endpoint/path/job/failed",@job_failed_data.to_json
       end
