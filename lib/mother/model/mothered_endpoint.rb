@@ -30,6 +30,10 @@ class MotheredEndpoint
   def add_event(event)
     event.endpoint_path = self.path
     self.endpoint_events << event
+    pending = self.expectations.all(:status=>:pending)
+    pending.each do |expectation|
+      expectation.save if expectation.try_complete(event)
+    end
   end
 
   def save
