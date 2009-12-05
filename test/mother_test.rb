@@ -46,26 +46,6 @@ class MotherTest < Test::Unit::TestCase
   end
 
   context "Mother, when a client PUTs a status" do
-    context "in JSON format" do
-      setup do
-        @status_json = { :status => "offline"}.to_json
-      end
-
-      context "to an existing endpoint," do
-        setup do
-          @ep_status = EndpointStatus.new
-          MotheredEndpoint.expects(:find_by_path).with(@path).returns(@new_ep)
-          @new_ep.expects(:status=).with(JSON.parse(@status_json))
-          @new_ep.expects(:save).returns(true)
-          put '/endpoint/' + @path + '/status',@status_json
-        end
-
-        should "update the status for that endpoint" do
-          assert last_response.ok?
-          assert_equal "", last_response.body
-        end
-      end
-    end
 
     context "to a non-existing endpoint," do
       setup do
@@ -78,15 +58,14 @@ class MotherTest < Test::Unit::TestCase
       end
     end
 
-    context "as a simple string" do
+    context "to an existing endpoint" do
       setup do
-        @ep_status = EndpointStatus.new
         MotheredEndpoint.expects(:find_by_path).with(@path).returns(@new_ep)
         @new_ep.expects(:status=).with("online")
         @new_ep.expects(:save).returns(true)
         put '/endpoint/' + @path + '/status',"online"
       end
-      should "not attempt to parse as JSON" do
+      should "set and save the status" do
         assert last_response.ok?
       end
     end
