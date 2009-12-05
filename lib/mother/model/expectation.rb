@@ -10,6 +10,7 @@ class Expectation
 
   key :endpoint_path, String, :index=>true
 
+  key :_type, String
   key :expiration_time, Time, :required=>true
   key :grace_period, Integer
 
@@ -50,6 +51,9 @@ class Expectation
     false
   end
 
+  def self.try_expire_all()
+    all(:status=>:pending).each {|exp| exp.save if exp.try_expire}
+  end
 end
 
 class EndpointEventExpectation < Expectation
