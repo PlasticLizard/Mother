@@ -29,7 +29,7 @@ class MotheredEndpointTest < Test::Unit::TestCase
       end
     end
 
-  end
+  end  
 
   context "#status=" do
     setup { @ep = MotheredEndpoint.new }
