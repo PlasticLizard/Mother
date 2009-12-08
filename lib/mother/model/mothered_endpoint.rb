@@ -29,19 +29,18 @@ class MotheredEndpoint
   def add_event(event)
     event.endpoint_path = self.path
     self.endpoint_events << event
-    pending = self.expectations.all(:status=>:pending)
-    pending.each do |expectation|
+    self.expectations.all(:status=>:pending).each do |expectation|
       expectation.save if expectation.try_complete(event)
     end
   end
 
-  def save
-    ensure_status
-    super
-  end
-
   def status=(value)
    @status = value.to_sym if value
-  end 
+  end
+
+  def expect(expectation)
+    expectation.endpoint_path = self.path
+    self.expectations << expectation
+  end
 
 end

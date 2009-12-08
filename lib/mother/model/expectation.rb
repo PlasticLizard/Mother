@@ -1,6 +1,3 @@
-require File.dirname(__FILE__) + "/mothered_endpoint"
-require File.dirname(__FILE__) + "/job_events"
-
 class Expectation
   include MongoMapper::Document
   include Mother::ModelRSS
@@ -32,7 +29,7 @@ class Expectation
 
   def is_expired(as_of=Time.now)
     expires_at = (self.expiration_time + (self.grace_period || 0))
-    as_of > expires_at
+    as_of.utc > expires_at.utc
   end
 
   def try_complete(context = nil)

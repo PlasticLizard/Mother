@@ -60,7 +60,7 @@ module Mother
     post '/endpoint/*/job/:job_id/complete' do
       ep, event = get_endpoint_and_event JobCompletedEvent
       job = Job.find(params[:job_id])
-      not_found unless job      
+      not_found unless job
       job.complete(event)
       job.save
       ep.add_event(event)
