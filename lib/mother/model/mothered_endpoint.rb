@@ -14,6 +14,8 @@ class MotheredEndpoint
 
   many :expectations, :polymorphic=>true
 
+  many :endpoint_errors
+
   timestamps!
 
   def create_job(job_start)
@@ -22,25 +24,41 @@ class MotheredEndpoint
     job.start_time = job_start.start_time || Time.now
     job.status = :pending
     self.jobs << job
-    job_start.job_id = job.id    
+    job_start.job_id = job.id
     job
+  end
+
+  def add_error(error)
+    error.endpoint_path = self.path
+    self.endpoint_errors << error
+    TownCrier.proclaim(:endpoint_error, :error=>error, :endpoint=>self)
   end
 
   def add_event(event)
     event.endpoint_path = self.path
     self.endpoint_events << event
-    self.expectations.all(:status=>:pending).each do |expectation|
-      expectation.save if expectation.try_complete(event)
-    end
+    complete_expectations(event)
+    TownCrier.proclaim(:endpoint_event, :event=>event, :endpoint=>self)
   end
 
   def status=(value)
-   @status = value.to_sym if value
+    prev = @status
+    @status = value.to_sym if value
+    if prev != @status
+      TownCrier.proclaim :endpoint_status_changed,:previous_status=>prev,:new_status=>@status,:endpoint=>self
+    end
   end
 
   def expect(expectation)
     expectation.endpoint_path = self.path
     self.expectations << expectation
+  end
+
+  private
+  def complete_expectations(event)
+    self.expectations.all(:status=>pending).each do |expectation|
+      expectation.save if expectation.try_complete(event)
+    end
   end
 
 end

@@ -12,8 +12,11 @@ MongoMapper.database = "mother"
 #Set the root of the application for easier path specification
 MOTHER_APP_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../") unless defined? MOTHER_APP_ROOT
 
-#require models
+#require helpers / utilities
 require "mother/model/model_rss"
+require "mother/town_crier"
+
+#require models
 Dir[(File.join(MOTHER_APP_ROOT,"lib/mother/model/") + "*.rb")].each do |model|
   require model
 end

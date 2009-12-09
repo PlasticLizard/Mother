@@ -114,6 +114,7 @@ class MotherTest < Test::Unit::TestCase
       EndpointEvent.expects(:new).returns(@event)
       @events = []
       @new_ep.expects(:endpoint_events).returns(@events)
+      @new_ep.expects(:complete_expectations).with(@event)
     end
     context "to an existing endpoint the event" do
 

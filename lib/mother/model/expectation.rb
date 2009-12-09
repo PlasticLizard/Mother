@@ -43,6 +43,7 @@ class Expectation
   def try_expire(as_of=Time.now)
     if is_expired(as_of) then
       self.status = :expectation_unmet
+      TownCrier.proclaim :expectation_unmet, :expectation=>self
       return true
     end
     false

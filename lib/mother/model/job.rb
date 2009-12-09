@@ -30,6 +30,7 @@ class Job
     self.end_time = job_complete_event.end_time || Time.now
     self.duration = job_complete_event.duration || (self.end_time - self.start_time)/60.0
     self.status = :completed
+    TownCrier.proclaim :job_complete, :job=>self
   end
 
   def fail(job_failed_event)
@@ -37,6 +38,7 @@ class Job
     self.end_time = job_failed_event.end_time || Time.now
     self.duration = job_failed_event.duration || (self.end_time - self.start_time)/60.0
     self.status = :failed
+    TownCrier.proclaim :job_failed, :job=>self
   end
 
 end
