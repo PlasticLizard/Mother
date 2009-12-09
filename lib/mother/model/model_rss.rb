@@ -1,5 +1,4 @@
 require "rss/maker"
-require "active_support"
 require "erb"
 
 module Mother

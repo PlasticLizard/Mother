@@ -2,9 +2,10 @@ $:.unshift(File.dirname(__FILE__))
 
 require 'rubygems'
 require "sinatra/base"
-require "haml"
 require "mongo_mapper"
 require "json"
+require "active_support"
+require "mail"
 
 #Should load this from config
 MongoMapper.database = "mother"
