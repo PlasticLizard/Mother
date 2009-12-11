@@ -1,5 +1,6 @@
 require File.join(File.dirname(__FILE__),"lib/mother")
 
-load File.join(File.dirname(__FILE__),"lib/mother/boot.rb")
+Time.zone = "PST"
+WATCHFUL_EYE = WatchfulEye.start(:interval=>0.5)
 
 run Mother::Application

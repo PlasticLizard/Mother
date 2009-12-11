@@ -15,6 +15,7 @@ MOTHER_APP_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../") unless defin
 #require helpers / utilities
 require "mother/model/model_rss"
 require "mother/town_crier"
+require "mother/watchful_eye"
 
 #require models
 Dir[(File.join(MOTHER_APP_ROOT,"lib/mother/model/") + "*.rb")].each do |model|
@@ -28,10 +29,11 @@ module Mother
     disable :reload
     enable :raise_errors
     set :root, MOTHER_APP_ROOT
-    set :public, "#{root}/public"
     set :logging, true
-    set :static, true
-    set :views, "#{root}/lib/mother/view"
+    set :static, false
+    #set :public, "#{root}/public"
+    #set :views, "#{root}/lib/mother/view"
+
 
     helpers do
       def absolute_uri(path)
