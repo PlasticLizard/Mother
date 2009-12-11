@@ -1,0 +1,22 @@
+#Edit the configuration settings below and rename
+#this file to config.yml to activate configuration.
+database: mother
+
+email:
+  mothers_email_address: mother@home.com
+  server: 127.0.0.1
+  port: 25
+  #username: @@@
+  #password: @@@
+
+alerts:
+ - people:
+   - me@noreply.com
+   - you@noreply.com
+   events:
+   - expectation_unmet
+   - endpoint_error
+   - endpoint_status_changed
+
+
+
