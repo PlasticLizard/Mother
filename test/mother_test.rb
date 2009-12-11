@@ -13,7 +13,7 @@ class MotherTest < Test::Unit::TestCase
       @new_ep_json = {
               :path=>@path,
               :name=>"My Endpoint",
-              :status => { :name => "On-line", :description => "On-line and ready to go"}
+              :status => :online
       }.to_json
       @new_ep.expects(:from_json).with(@new_ep_json)
       @new_ep.expects(:save).returns(true)

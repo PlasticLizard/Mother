@@ -6,7 +6,7 @@ class TownCrierTest  < Test::Unit::TestCase
     setup do
       @args = {}
       @l1 = Object.new
-      @l1.expects(:call).with([@args]).at_least(2)
+      @l1.expects(:call).with(:my_event, @args).at_least(2)
       TownCrier.expects(:listeners_for).with(:my_event).returns([@l1,@l1])
 
     end

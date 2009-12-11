@@ -6,11 +6,23 @@ require "mongo_mapper"
 require "json"
 require "active_support"
 require "mail"
+require "rconfig"
 
-#Should load this from config
-MongoMapper.database = "mother"
+
 #Set the root of the application for easier path specification
-MOTHER_APP_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../") unless defined? MOTHER_APP_ROOT
+MOTHER_APP_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../")
+
+#set path for config files
+RConfig.config_paths = "#{MOTHER_APP_ROOT}/config"
+CONFIG = RConfig.config || {}
+
+MongoMapper.database = CONFIG.database || "mother"
+if CONFIG.email
+  Mail.defaults do
+    smtp (CONFIG.email.server || 'localhost'), (CONFIG.email.port || 25)
+  end
+end
+
 
 #require helpers / utilities
 require "mother/model/model_rss"
