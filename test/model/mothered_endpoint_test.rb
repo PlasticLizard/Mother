@@ -36,11 +36,13 @@ class MotheredEndpointTest < Test::Unit::TestCase
       @ep = MotheredEndpoint.new :path=>"a/b/c"
       @error = EndpointError.new
       @error.expects(:endpoint_path=).with("a/b/c")
-      @ep.endpoint_errors.expects(:<<).with(@error)
+      @errors = []
+      @ep.expects(:endpoint_errors).returns(@errors)
       TownCrier.expects(:proclaim).with(:endpoint_error,{:error=>@error,:endpoint=>@ep})
     end
     should "set the path on the error, add to the errors collection, and publish the event to the town crier" do
       @ep.add_error(@error)
+      assert_equal(@error,@errors[0])
     end
   end
 
@@ -49,13 +51,16 @@ class MotheredEndpointTest < Test::Unit::TestCase
       @ep = MotheredEndpoint.new :path=>"a/b/c"
       @event = JobCompletedEvent.new
       @event.expects(:endpoint_path=).with("a/b/c")
-      @ep.endpoint_events.expects(:<<).with(@event)
+      @events = []
+      @ep.expects(:endpoint_events).returns(@events)
       @ep.expects(:complete_expectations).with(@event)
       TownCrier.expects(:proclaim).with(:endpoint_event,{:event=>@event,:endpoint=>@ep})
       @ep.expects(:expect_event).with(@event)
+
     end
     should "set the path on the error, add to the collection, complete expecations and publish the event to the town crier and setup new expectation" do
       @ep.add_event(@event)
+      assert_equal @event, @events[0]
     end
   end
 
