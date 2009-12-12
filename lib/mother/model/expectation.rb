@@ -59,7 +59,8 @@ class EndpointEventExpectation < Expectation
   key :expected_event_type_name, String
 
   def matches(context)
-    return false unless context.class.name =~ /#{self.expected_event_type_name}/i
+    return false unless self.expected_event_type_name &&
+                             context.class.name =~ /#{self.expected_event_type_name}/i
     return super(context)
   end
 
@@ -70,11 +71,7 @@ class JobCompletedExpectation < EndpointEventExpectation
   key :expected_job_name, String, :required=>true
 
   def expected_event_type_name
-    JobCompletedEvent.name
-  end
-
-  def expected_event_type_name=(val)
-    raise "expected_event_type_name cannot be set on a JobCompletedEvent"
+    @expected_event_type_name || JobCompletedEvent.name
   end
 
   def matches(context)

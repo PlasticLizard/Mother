@@ -58,6 +58,9 @@ class MotheredEndpoint
       expectation = EndpointEventExpectation.new
     end
     expectation.expiration_time = event.expect_next_at
+    expectation.expected_event_type_name = event.class.name
+    expectation.grace_period = event.grace_period if event.respond_to? :grace_period
+    expectation.expectation_expression = event.expectation_expression if event.respond_to? :expectation_expression
     expect(expectation)
   end
 
@@ -68,7 +71,7 @@ class MotheredEndpoint
 
   private
   def complete_expectations(event)
-    self.expectations.all(:status=>pending).each do |expectation|
+    self.expectations.all(:status=>:pending).each do |expectation|
       expectation.save if expectation.try_complete(event)
     end
   end
