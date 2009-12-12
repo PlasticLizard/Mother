@@ -13,13 +13,13 @@ require "rconfig"
 MOTHER_APP_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../")
 
 #set path for config files
-RConfig.config_paths = "#{MOTHER_APP_ROOT}/config"
+RConfig.config_paths = ["#{MOTHER_APP_ROOT}/config"]
 CONFIG = RConfig.config || {}
 
 MongoMapper.database = CONFIG.database || "mother"
 if CONFIG.email
   Mail.defaults do
-    smtp (CONFIG.email.server || 'localhost'), (CONFIG.email.port || 25)
+    smtp( (CONFIG.email.server || 'localhost'), (CONFIG.email.port || 25) )
   end
 end
 
@@ -76,7 +76,7 @@ module Mother
     end
 
     post '/endpoint/*/job/:job_id/complete' do
-      ep, event = get_endpoint_and_event JobCompletedEvent
+      ep, event = get_endpoint_and_event(JobCompletedEvent)
       job = Job.find(params[:job_id])
       not_found unless job
       job.complete(event)

@@ -8,6 +8,8 @@ class EndpointEvent
   key :endpoint_path, String, :required=>true,:index=>true
   key :name, String
   key :_type, String
+
+  key :expect_next_at, Time
   
   timestamps!      
 end

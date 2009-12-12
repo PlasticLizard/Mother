@@ -182,12 +182,16 @@ class MotherTest < Test::Unit::TestCase
   context "Mother, when a client POSTs a JobCompleted event" do
     setup do
       @id = Mongo::ObjectID.new
-      @job_complete_data = {:name=>"A Job",:job_id=>@id.to_s}
+      @job_complete_data = {:name=>"A Job",:job_id=>@id.to_s, :expect_next_at=>Time.parse("08:00")}
+      time_string = @job_complete_data[:expect_next_at].to_json.gsub('"',"")
       @ep = MotheredEndpoint.new
       MotheredEndpoint.expects(:find_by_path).with("path").returns(@ep)
-      @jc_event = JobCompletedEvent.new :name=>"A Job",:job_id=>@id.to_s
+      @jc_event = JobCompletedEvent.new @job_complete_data
       @job = Job.new
-      JobCompletedEvent.expects(:new).with("name"=>"A Job","job_id"=>@id.to_s).returns(@jc_event)
+      JobCompletedEvent.expects(:new).with(
+              "name"=>"A Job",
+              "job_id"=>@id.to_s,
+              "expect_next_at"=>time_string).returns(@jc_event)
       @job.expects(:complete).with(@jc_event)
       @ep.expects(:add_event).with(@jc_event)
     end
