@@ -1,6 +1,3 @@
-require File.dirname(__FILE__) + "/mothered_endpoint"
-require File.dirname(__FILE__) + "/endpoint_error"
-
 class Job
   include MongoMapper::Document
   include Mother::ModelRSS

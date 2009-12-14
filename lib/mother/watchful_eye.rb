@@ -1,4 +1,13 @@
+require "robustthread"
+
 class WatchfulEye
+
+  def self.logger
+    @logger || Mother::LOGGER
+  end
+  def self.logger=(logger)
+    @logger = logger
+  end
 
   def self.start(options={})
     WatchfulEye.new(options) do
@@ -12,26 +21,25 @@ class WatchfulEye
   end
 
   def start
-    @thread = Thread.new do
-      loop do
-        sleep(@options[:interval] || 1.0)
-        self.inspection!
-      end
+    WatchfulEye.logger.debug "Mother is watching..."
+    RobustThread.logger = WatchfulEye.logger
+    RobustThread.loop(:seconds => 3) do
+      #sleep(@options[:interval] || 1.0)
+      self.inspection!
     end
-
-    @thread[:name] =
-            @options[:thread_name] || "Mother's Watchful Eye"
+    WatchfulEye.logger.debug "Mother's Watchful Eye is watching on this thread:#{@thread.inspect}"
   end
 
   def stop
-    @thread.exit
+    #@thread.exit
   end
 
   def join
-    @thread.join
+    #@thread.join
   end
 
   def inspection!
+    WatchfulEye.logger.debug "Mother is checking for expired expectations"
     Expectation.try_expire_all
   end
 

@@ -1,8 +1,5 @@
-require File.dirname(__FILE__) + "/endpoint_event"
-require File.dirname(__FILE__) + "/endpoint_error"
-
 class JobEvent < EndpointEvent
-  key :job_id, ObjectId, :required=>true, :index=>true
+  key :job_id, ObjectId, :index=>true
   belongs_to :job
 end
 

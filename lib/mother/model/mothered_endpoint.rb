@@ -1,5 +1,4 @@
 require "json"
-require File.dirname(__FILE__) + "/endpoint_event"
 
 class MotheredEndpoint
   include MongoMapper::Document

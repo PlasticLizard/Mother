@@ -7,22 +7,8 @@ require "json"
 require "active_support"
 require "mail"
 require "rconfig"
-
-
-#Set the root of the application for easier path specification
-MOTHER_APP_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../")
-
-#set path for config files
-RConfig.config_paths = ["#{MOTHER_APP_ROOT}/config"]
-CONFIG = RConfig.config || {}
-
-MongoMapper.database = CONFIG.database || "mother"
-if CONFIG.email
-  Mail.defaults do
-    smtp( (CONFIG.email.server || 'localhost'), (CONFIG.email.port || 25) )
-  end
-end
-
+require "logger"
+require "robustthread"
 
 #require helpers / utilities
 require "mother/model/model_rss"
@@ -30,22 +16,17 @@ require "mother/town_crier"
 require "mother/watchful_eye"
 
 #require models
-Dir[(File.join(MOTHER_APP_ROOT,"lib/mother/model/") + "*.rb")].each do |model|
-  require model
-end
+require "mother/model/endpoint_error"
+require "mother/model/endpoint_event"
+require "mother/model/expectation"
+require "mother/model/job"
+require "mother/model/job_events"
+require "mother/model/model_rss"
+require "mother/model/mothered_endpoint"
+
 
 module Mother
   class Application < Sinatra::Base
-
-    #Sinatra Configuration
-    disable :reload
-    enable :raise_errors
-    set :root, MOTHER_APP_ROOT
-    set :logging, true
-    set :static, false
-    #set :public, "#{root}/public"
-    #set :views, "#{root}/lib/mother/view"
-
 
     helpers do
       def absolute_uri(path)
@@ -81,6 +62,7 @@ module Mother
       not_found unless job
       job.complete(event)
       job.save
+      event.job_id = job.id
       ep.add_event(event)
     end
 
@@ -90,6 +72,7 @@ module Mother
       job = ep.create_job js
       job.complete(event)
       job.save
+      event.job_id = job.id
       ep.add_event(event)
     end
 
@@ -99,6 +82,7 @@ module Mother
       not_found unless job
       job.fail(event)
       job.save
+      event.job_id = job.id
       ep.add_event(event)
     end
 
@@ -108,6 +92,7 @@ module Mother
       job = ep.create_job js
       job.fail(event)
       job.save
+      event.job_id = job.id
       ep.add_event(event)
     end
 
@@ -137,5 +122,36 @@ module Mother
       path
     end
 
+    configure do
+      #Set the root of the application for easier path specification
+      MOTHER_APP_ROOT = File.expand_path("#{File.dirname(__FILE__)}/../")
+
+      #set path for config files
+      RConfig.config_paths = ["#{MOTHER_APP_ROOT}/config"]
+      CONFIG = RConfig.config || {}
+
+      MongoMapper.database = CONFIG.database || "mother"
+      if CONFIG.email
+        Mail.defaults do
+          smtp( (CONFIG.email.server || 'localhost'), (CONFIG.email.port || 25) )
+        end
+      end
+
+      #Sinatra Configuration
+      disable :reload
+      enable :raise_errors
+      set :root, MOTHER_APP_ROOT
+      set :logging, true
+      set :static, false
+      #set :public, "#{root}/public"
+      #set :views, "#{root}/lib/mother/view"
+
+      Mother::LOGGER = Logger.new(RConfig.config.log_file || "mother.log", 10, 1024000)
+      Mother::LOGGER.level = eval(RConfig.config.log_level) if RConfig.config.log_level
+      Time.zone = RConfig.config.time_zone || "PST"
+      WATCHFUL_EYE = WatchfulEye.start(:interval=>0.5)
+    end
+
   end
 end
+

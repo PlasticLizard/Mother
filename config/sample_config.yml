@@ -1,6 +1,14 @@
 #Edit the configuration settings below and rename
 #this file to config.yml to activate configuration.
+
 database: mother
+
+#Log settings
+log_file: mother.log
+log_level: Logger::WARN
+#DEBUG < INFO < WARN < ERROR < FATAL < UNKNOWN
+
+time_zone: "PST"
 
 email:
   mothers_email_address: mother@home.com
