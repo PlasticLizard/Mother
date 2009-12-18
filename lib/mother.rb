@@ -131,6 +131,8 @@ module Mother
       CONFIG = RConfig.config || {}
 
       MongoMapper.database = CONFIG.database || "mother"
+      MongoMapper.ensure_indexes!
+      
       if CONFIG.email
         Mail.defaults do
           smtp( (CONFIG.email.server || 'localhost'), (CONFIG.email.port || 25) )
