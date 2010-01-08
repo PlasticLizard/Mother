@@ -1,0 +1,2 @@
+class EndpointErrorsController < ApplicationController
+end

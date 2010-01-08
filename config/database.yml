@@ -1,0 +1,15 @@
+development: &global_settings
+  database: mother_development
+  host: 127.0.0.1
+  port: 27017
+
+test:
+  database: mother_test
+  <<: *global_settings
+
+production:
+  database: mother
+  #host: hostname
+  #username: username
+  #password: password
+  <<: *global_settings
